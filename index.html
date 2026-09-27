@@ -1,15 +1,756 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#2C2B7E"><title>GEOLUB Gestión Taller</title><link rel="manifest" href="./manifest.json"><style>
-:root{--azul:#2C2B7E;--rojo:#9A1B1E;--bg:#f4f6fa;--card:#fff;--text:#202331;--muted:#697083}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}header{background:#080808;padding:14px 18px;text-align:center;border-bottom:5px solid var(--rojo)}header img{max-width:330px;width:82%;height:auto}.wrap{max-width:1050px;margin:auto;padding:18px}.hero{background:linear-gradient(135deg,var(--azul),#16175c);color:white;border-radius:18px;padding:20px;box-shadow:0 8px 25px #0002}.hero h1{margin:0 0 6px;font-size:25px}.hero p{margin:0;opacity:.9}.tabs{display:flex;gap:8px;overflow:auto;margin:16px 0}.tab{border:0;background:white;padding:12px 14px;border-radius:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px #0001}.tab.active{background:var(--rojo);color:white}.panel{display:none}.panel.active{display:block}.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px #00000010}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(max-width:650px){.grid{grid-template-columns:1fr}}label{font-size:13px;font-weight:700;color:var(--muted)}input,textarea,select{width:100%;padding:12px;border:1px solid #d7dbe5;border-radius:10px;margin-top:5px;font:inherit}textarea{min-height:90px}.btn{background:var(--azul);color:white;border:0;border-radius:11px;padding:12px 16px;font-weight:800;cursor:pointer}.btn.red{background:var(--rojo)}.btn.gray{background:#5f6675}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.result{border-left:5px solid var(--azul);padding-left:12px}.visit{padding:12px 0;border-bottom:1px solid #e8eaf0}.visit:last-child{border:0}.big{font-size:20px;font-weight:900}.muted{color:var(--muted);font-size:14px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:white;border-radius:14px;padding:15px;text-align:center;box-shadow:0 3px 12px #0001}.stat b{display:block;font-size:22px;color:var(--azul)}@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.wrap{padding:12px}}.empty{text-align:center;color:var(--muted);padding:24px}.badge{display:inline-block;background:#eef0ff;color:var(--azul);padding:5px 9px;border-radius:999px;font-weight:700;font-size:12px}footer{text-align:center;color:#777;padding:20px;font-size:12px}</style></head><body>
-<header><img src='geolub-logo.png' alt='GEOLUB'></header><main class='wrap'><section class='hero'><h1>Gestión de Taller</h1><p>Historial de vehículos, clientes y trabajos por patente.</p></section>
-<nav class='tabs'><button class='tab active' data-tab='buscar'>🔎 Buscar</button><button class='tab' data-tab='vehiculo'>🚗 Nuevo vehículo</button><button class='tab' data-tab='atencion'>🔧 Nueva atención</button><button class='tab' data-tab='panel'>📊 Panel</button></nav>
-<section id='buscar' class='panel active'><div class='card'><div class='grid'><div><label>Patente</label><input id='searchPlate' placeholder='Ej: SPHP56' autocapitalize='characters'></div><div style='align-self:end'><button class='btn' onclick='searchVehicle()'>Buscar historial</button></div></div></div><div id='searchResult'></div></section>
-<section id='vehiculo' class='panel'><div class='card'><h2>Registrar vehículo</h2><div class='grid'><div><label>Patente *</label><input id='vPlate'></div><div><label>Cliente *</label><input id='vClient'></div><div><label>Teléfono</label><input id='vPhone' placeholder='+56 9...'></div><div><label>Marca</label><input id='vBrand'></div><div><label>Modelo</label><input id='vModel'></div><div><label>Año</label><input id='vYear' type='number'></div><div><label>Kilometraje actual</label><input id='vKm' type='number'></div></div><div class='actions'><button class='btn red' onclick='saveVehicle()'>Guardar vehículo</button></div></div></section>
-<section id='atencion' class='panel'><div class='card'><h2>Nueva atención</h2><div class='grid'><div><label>Patente *</label><input id='aPlate'></div><div><label>Fecha *</label><input id='aDate' type='date'></div><div><label>Kilometraje</label><input id='aKm' type='number'></div><div><label>Monto cobrado ($)</label><input id='aAmount' type='number'></div><div><label>Próxima mantención (km)</label><input id='aNextKm' type='number'></div><div><label>Próxima mantención (fecha)</label><input id='aNextDate' type='date'></div></div><div style='margin-top:12px'><label>Trabajo realizado *</label><textarea id='aWork' placeholder='Ej: cambio de aceite, filtro, revisión de frenos...'></textarea></div><div style='margin-top:12px'><label>Repuestos utilizados</label><textarea id='aParts'></textarea></div><div style='margin-top:12px'><label>Observaciones</label><textarea id='aNotes'></textarea></div><div class='actions'><button class='btn red' onclick='saveVisit()'>Guardar atención</button></div></div></section>
-<section id='panel' class='panel'><div class='stats'><div class='stat'><b id='sVehicles'>0</b>Vehículos</div><div class='stat'><b id='sVisits'>0</b>Atenciones</div><div class='stat'><b id='sSales'>$0</b>Ventas registradas</div></div><div class='card' style='margin-top:14px'><h2>Respaldo</h2><p class='muted'>Esta versión guarda los datos en este dispositivo. Puedes exportar un respaldo y restaurarlo cuando quieras.</p><div class='actions'><button class='btn' onclick='exportData()'>Exportar respaldo</button><label class='btn gray'>Importar respaldo<input type='file' accept='.json' onchange='importData(event)' style='display:none'></label></div></div></section>
-</main><footer>GEOLUB · Servicio Automotriz Integral</footer><script>
-const KEY='geolub_taller_v1';const norm=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');function db(){return JSON.parse(localStorage.getItem(KEY)||'{"vehicles":{},"visits":[]}')}function put(d){localStorage.setItem(KEY,JSON.stringify(d));updateStats()}function money(n){return '$'+Number(n||0).toLocaleString('es-CL')}document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab,.panel').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active');if(b.dataset.tab==='panel')updateStats()});document.getElementById('aDate').value=new Date().toISOString().slice(0,10);
-function saveVehicle(){let d=db(),p=norm(vPlate.value);if(!p||!vClient.value.trim())return alert('Ingresa patente y nombre del cliente.');d.vehicles[p]={plate:p,client:vClient.value.trim(),phone:vPhone.value.trim(),brand:vBrand.value.trim(),model:vModel.value.trim(),year:vYear.value,km:vKm.value};put(d);alert('Vehículo guardado correctamente.');['vPlate','vClient','vPhone','vBrand','vModel','vYear','vKm'].forEach(id=>document.getElementById(id).value='')}
-function saveVisit(){let d=db(),p=norm(aPlate.value);if(!p||!aDate.value||!aWork.value.trim())return alert('Ingresa patente, fecha y trabajo realizado.');if(!d.vehicles[p])return alert('Primero registra este vehículo.');d.visits.push({id:Date.now(),plate:p,date:aDate.value,km:aKm.value,amount:Number(aAmount.value||0),nextKm:aNextKm.value,nextDate:aNextDate.value,work:aWork.value.trim(),parts:aParts.value.trim(),notes:aNotes.value.trim()});if(aKm.value)d.vehicles[p].km=aKm.value;put(d);alert('Atención agregada al historial.');['aPlate','aKm','aAmount','aNextKm','aNextDate','aWork','aParts','aNotes'].forEach(id=>document.getElementById(id).value='');aDate.value=new Date().toISOString().slice(0,10)}
-function searchVehicle(){let d=db(),p=norm(searchPlate.value),v=d.vehicles[p],box=searchResult;if(!v){box.innerHTML='<div class="card empty">No encontramos esa patente. Puedes registrarla como vehículo nuevo.</div>';return}let vs=d.visits.filter(x=>x.plate===p).sort((a,b)=>b.date.localeCompare(a.date));let total=vs.reduce((s,x)=>s+Number(x.amount||0),0);box.innerHTML=`<div class='card result'><span class='badge'>${v.plate}</span><div class='big'>${esc(v.brand)} ${esc(v.model)} ${esc(v.year)}</div><div>${esc(v.client)} · ${esc(v.phone)}</div><div class='muted'>Kilometraje registrado: ${Number(v.km||0).toLocaleString('es-CL')} km · Total histórico: ${money(total)}</div></div><div class='card'><h2>Historial (${vs.length})</h2>${vs.length?vs.map(x=>`<div class='visit'><b>${fmt(x.date)} · ${Number(x.km||0).toLocaleString('es-CL')} km</b><div>${esc(x.work)}</div>${x.parts?`<div class='muted'>Repuestos: ${esc(x.parts)}</div>`:''}${x.notes?`<div class='muted'>Obs.: ${esc(x.notes)}</div>`:''}<div><b>${money(x.amount)}</b>${x.nextKm?` · Próx.: ${Number(x.nextKm).toLocaleString('es-CL')} km`:''}${x.nextDate?` · ${fmt(x.nextDate)}`:''}</div></div>`).join(''):`<div class='empty'>Este vehículo todavía no tiene atenciones registradas.</div>`}</div>`}
-function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}function fmt(s){if(!s)return'';let [y,m,d]=s.split('-');return `${d}/${m}/${y}`}function updateStats(){let d=db();sVehicles.textContent=Object.keys(d.vehicles).length;sVisits.textContent=d.visits.length;sSales.textContent=money(d.visits.reduce((s,x)=>s+Number(x.amount||0),0))}function exportData(){let blob=new Blob([JSON.stringify(db(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='respaldo-geolub.json';a.click();URL.revokeObjectURL(a.href)}function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.vehicles||!x.visits)throw 0;put(x);alert('Respaldo restaurado.')}catch{alert('El archivo de respaldo no es válido.')}};r.readAsText(f)}updateStats();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');</script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2C2B7E">
+<title>GEOLUB Gestión Taller</title>
+<link rel="manifest" href="./manifest.json">
+
+<style>
+:root{
+--azul:#2C2B7E;
+--rojo:#9A1B1E;
+--bg:#f4f6fa;
+--card:#fff;
+--text:#202331;
+--muted:#697083
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+background:var(--bg);
+color:var(--text)
+}
+header{
+background:#080808;
+padding:14px 18px;
+text-align:center;
+border-bottom:5px solid var(--rojo)
+}
+header img{max-width:330px;width:82%;height:auto}
+.wrap{max-width:1050px;margin:auto;padding:18px}
+.hero{
+background:linear-gradient(135deg,var(--azul),#16175c);
+color:white;
+border-radius:18px;
+padding:20px;
+box-shadow:0 8px 25px #0002
+}
+.hero h1{margin:0 0 6px;font-size:25px}
+.hero p{margin:0;opacity:.9}
+.tabs{display:flex;gap:8px;overflow:auto;margin:16px 0}
+.tab{
+border:0;background:white;padding:12px 14px;border-radius:12px;
+font-weight:700;white-space:nowrap;box-shadow:0 2px 8px #0001
+}
+.tab.active{background:var(--rojo);color:white}
+.panel{display:none}
+.panel.active{display:block}
+.card{
+background:var(--card);border-radius:16px;padding:16px;
+margin-bottom:14px;box-shadow:0 4px 16px #00000010
+}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}}
+label{font-size:13px;font-weight:700;color:var(--muted)}
+input,textarea,select{
+width:100%;padding:12px;border:1px solid #d7dbe5;
+border-radius:10px;margin-top:5px;font:inherit
+}
+textarea{min-height:90px}
+.btn{
+background:var(--azul);color:white;border:0;border-radius:11px;
+padding:12px 16px;font-weight:800;cursor:pointer
+}
+.btn.red{background:var(--rojo)}
+.btn.gray{background:#5f6675}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.result{border-left:5px solid var(--azul);padding-left:12px}
+.visit{padding:12px 0;border-bottom:1px solid #e8eaf0}
+.visit:last-child{border:0}
+.big{font-size:20px;font-weight:900}
+.muted{color:var(--muted);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{
+background:white;border-radius:14px;padding:15px;text-align:center;
+box-shadow:0 3px 12px #0001
+}
+.stat b{display:block;font-size:22px;color:var(--azul)}
+@media(max-width:600px){
+.stats{grid-template-columns:1fr 1fr}
+.wrap{padding:12px}
+}
+.empty{text-align:center;color:var(--muted);padding:24px}
+.badge{
+display:inline-block;background:#eef0ff;color:var(--azul);
+padding:5px 9px;border-radius:999px;font-weight:700;font-size:12px;
+margin-right:5px
+}
+.info{
+background:#eef0ff;border-radius:12px;padding:12px;
+margin-bottom:14px;color:#36376e
+}
+footer{text-align:center;color:#777;padding:20px;font-size:12px}
+</style>
+</head>
+
+<body>
+
+<header>
+<img src="geolub-logo.png" alt="GEOLUB">
+</header>
+
+<main class="wrap">
+
+<section class="hero">
+<h1>Gestión de Taller</h1>
+<p>Historial de vehículos, clientes y trabajos por Patente o VIN/Chasis.</p>
+</section>
+
+<nav class="tabs">
+<button class="tab active" data-tab="buscar">🔎 Buscar</button>
+<button class="tab" data-tab="vehiculo">🚗 Nuevo vehículo</button>
+<button class="tab" data-tab="atencion">🔧 Nueva atención</button>
+<button class="tab" data-tab="panel">📊 Panel</button>
+</nav>
+
+<section id="buscar" class="panel active">
+
+<div class="card">
+<h2>Buscar vehículo</h2>
+
+<div class="grid">
+
+<div>
+<label>Patente</label>
+<input id="searchPlate"
+placeholder="Ej: SPHP56"
+autocapitalize="characters">
+</div>
+
+<div>
+<label>VIN / Chasis</label>
+<input id="searchVin"
+placeholder="17 caracteres"
+maxlength="17"
+autocapitalize="characters">
+</div>
+
+</div>
+
+<div class="actions">
+<button class="btn" onclick="searchVehicle()">Buscar historial</button>
+</div>
+
+</div>
+
+<div id="searchResult"></div>
+
+</section>
+
+
+<section id="vehiculo" class="panel">
+
+<div class="card">
+
+<h2>Registrar vehículo</h2>
+
+<div class="info">
+Puedes identificar el vehículo mediante su <b>Patente</b>, su
+<b>VIN/Chasis</b> o ambos.
+</div>
+
+<div class="grid">
+
+<div>
+<label>Patente</label>
+<input id="vPlate"
+placeholder="Ej: SPHP56"
+autocapitalize="characters">
+</div>
+
+<div>
+<label>VIN / Chasis</label>
+<input id="vVin"
+placeholder="17 caracteres"
+maxlength="17"
+autocapitalize="characters">
+</div>
+
+<div>
+<label>Cliente *</label>
+<input id="vClient">
+</div>
+
+<div>
+<label>Teléfono</label>
+<input id="vPhone" placeholder="+56 9...">
+</div>
+
+<div>
+<label>Marca</label>
+<input id="vBrand">
+</div>
+
+<div>
+<label>Modelo</label>
+<input id="vModel">
+</div>
+
+<div>
+<label>Año</label>
+<input id="vYear" type="number">
+</div>
+
+<div>
+<label>Kilometraje actual</label>
+<input id="vKm" type="number">
+</div>
+
+</div>
+
+<div class="actions">
+<button class="btn red" onclick="saveVehicle()">Guardar vehículo</button>
+</div>
+
+</div>
+
+</section>
+
+
+<section id="atencion" class="panel">
+
+<div class="card">
+
+<h2>Nueva atención</h2>
+
+<div class="grid">
+
+<div>
+<label>Patente</label>
+<input id="aPlate">
+</div>
+
+<div>
+<label>VIN / Chasis</label>
+<input id="aVin" maxlength="17">
+</div>
+
+<div>
+<label>Fecha *</label>
+<input id="aDate" type="date">
+</div>
+
+<div>
+<label>Kilometraje</label>
+<input id="aKm" type="number">
+</div>
+
+<div>
+<label>Monto cobrado ($)</label>
+<input id="aAmount" type="number">
+</div>
+
+<div>
+<label>Próxima mantención (km)</label>
+<input id="aNextKm" type="number">
+</div>
+
+<div>
+<label>Próxima mantención (fecha)</label>
+<input id="aNextDate" type="date">
+</div>
+
+</div>
+
+<div style="margin-top:12px">
+<label>Trabajo realizado *</label>
+<textarea id="aWork"
+placeholder="Ej: cambio de aceite, filtro, revisión de frenos..."></textarea>
+</div>
+
+<div style="margin-top:12px">
+<label>Repuestos utilizados</label>
+<textarea id="aParts"></textarea>
+</div>
+
+<div style="margin-top:12px">
+<label>Observaciones</label>
+<textarea id="aNotes"></textarea>
+</div>
+
+<div class="actions">
+<button class="btn red" onclick="saveVisit()">Guardar atención</button>
+</div>
+
+</div>
+
+</section>
+
+
+<section id="panel" class="panel">
+
+<div class="stats">
+
+<div class="stat">
+<b id="sVehicles">0</b>
+Vehículos
+</div>
+
+<div class="stat">
+<b id="sVisits">0</b>
+Atenciones
+</div>
+
+<div class="stat">
+<b id="sSales">$0</b>
+Ventas registradas
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+
+<h2>Respaldo</h2>
+
+<p class="muted">
+Los datos se guardan en este dispositivo.
+Puedes exportarlos o restaurarlos cuando quieras.
+</p>
+
+<div class="actions">
+
+<button class="btn" onclick="exportData()">
+Exportar respaldo
+</button>
+
+<label class="btn gray">
+Importar respaldo
+<input type="file"
+accept=".json"
+onchange="importData(event)"
+style="display:none">
+</label>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+<footer>
+GEOLUB · Servicio Automotriz Integral
+</footer>
+
+
+<script>
+
+const KEY='geolub_taller_v1';
+
+const norm=s=>
+(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+
+function db(){
+return JSON.parse(
+localStorage.getItem(KEY)||
+'{"vehicles":{},"visits":[]}'
+);
+}
+
+function put(d){
+localStorage.setItem(KEY,JSON.stringify(d));
+updateStats();
+}
+
+function money(n){
+return '$'+Number(n||0).toLocaleString('es-CL');
+}
+
+function vehicleKey(plate,vin){
+let p=norm(plate);
+let v=norm(vin);
+return p ? 'P_'+p : (v ? 'V_'+v : '');
+}
+
+function findVehicle(d,plate,vin){
+
+let p=norm(plate);
+let v=norm(vin);
+
+for(let key in d.vehicles){
+
+let x=d.vehicles[key];
+
+if(p && norm(x.plate)===p)
+return {key:key,vehicle:x};
+
+if(v && norm(x.vin)===v)
+return {key:key,vehicle:x};
+
+}
+
+return null;
+}
+
+
+document.querySelectorAll('.tab').forEach(b=>{
+
+b.onclick=()=>{
+
+document.querySelectorAll('.tab,.panel')
+.forEach(x=>x.classList.remove('active'));
+
+b.classList.add('active');
+
+document.getElementById(b.dataset.tab)
+.classList.add('active');
+
+if(b.dataset.tab==='panel')
+updateStats();
+
+};
+
+});
+
+
+document.getElementById('aDate').value=
+new Date().toISOString().slice(0,10);
+
+
+function saveVehicle(){
+
+let d=db();
+
+let p=norm(vPlate.value);
+let vin=norm(vVin.value);
+
+if(!p && !vin)
+return alert('Ingresa una Patente o un VIN/Chasis.');
+
+if(vin && vin.length!==17)
+return alert('El VIN normalmente debe tener 17 caracteres.');
+
+if(!vClient.value.trim())
+return alert('Ingresa el nombre del cliente.');
+
+let existing=findVehicle(d,p,vin);
+
+let key=existing
+? existing.key
+: vehicleKey(p,vin);
+
+d.vehicles[key]={
+plate:p,
+vin:vin,
+client:vClient.value.trim(),
+phone:vPhone.value.trim(),
+brand:vBrand.value.trim(),
+model:vModel.value.trim(),
+year:vYear.value,
+km:vKm.value
+};
+
+put(d);
+
+alert('Vehículo guardado correctamente.');
+
+[
+'vPlate','vVin','vClient','vPhone',
+'vBrand','vModel','vYear','vKm'
+].forEach(id=>{
+document.getElementById(id).value='';
+});
+
+}
+
+
+function saveVisit(){
+
+let d=db();
+
+let p=norm(aPlate.value);
+let vin=norm(aVin.value);
+
+if(!p && !vin)
+return alert('Ingresa Patente o VIN/Chasis.');
+
+if(!aDate.value || !aWork.value.trim())
+return alert('Ingresa fecha y trabajo realizado.');
+
+let found=findVehicle(d,p,vin);
+
+if(!found)
+return alert('Primero registra este vehículo.');
+
+d.visits.push({
+
+id:Date.now(),
+vehicleKey:found.key,
+plate:found.vehicle.plate||p,
+vin:found.vehicle.vin||vin,
+date:aDate.value,
+km:aKm.value,
+amount:Number(aAmount.value||0),
+nextKm:aNextKm.value,
+nextDate:aNextDate.value,
+work:aWork.value.trim(),
+parts:aParts.value.trim(),
+notes:aNotes.value.trim()
+
+});
+
+if(aKm.value)
+found.vehicle.km=aKm.value;
+
+put(d);
+
+alert('Atención agregada al historial.');
+
+[
+'aPlate','aVin','aKm','aAmount',
+'aNextKm','aNextDate','aWork',
+'aParts','aNotes'
+].forEach(id=>{
+document.getElementById(id).value='';
+});
+
+aDate.value=new Date().toISOString().slice(0,10);
+
+}
+
+
+function searchVehicle(){
+
+let d=db();
+
+let p=norm(searchPlate.value);
+let vin=norm(searchVin.value);
+
+let box=searchResult;
+
+if(!p && !vin){
+
+box.innerHTML=
+'<div class="card empty">Ingresa una Patente o VIN/Chasis.</div>';
+
+return;
+}
+
+let found=findVehicle(d,p,vin);
+
+if(!found){
+
+box.innerHTML=
+'<div class="card empty">No encontramos el vehículo. Puedes registrarlo como vehículo nuevo.</div>';
+
+return;
+}
+
+let v=found.vehicle;
+
+let vs=d.visits.filter(x=>
+x.vehicleKey===found.key ||
+(v.plate && norm(x.plate)===norm(v.plate)) ||
+(v.vin && norm(x.vin)===norm(v.vin))
+)
+.sort((a,b)=>b.date.localeCompare(a.date));
+
+let total=vs.reduce(
+(s,x)=>s+Number(x.amount||0),0
+);
+
+box.innerHTML=`
+
+<div class="card result">
+
+${v.plate
+? `<span class="badge">Patente: ${esc(v.plate)}</span>`
+:''}
+
+${v.vin
+? `<span class="badge">VIN: ${esc(v.vin)}</span>`
+:''}
+
+<div class="big">
+${esc(v.brand)} ${esc(v.model)} ${esc(v.year)}
+</div>
+
+<div>
+${esc(v.client)} · ${esc(v.phone)}
+</div>
+
+<div class="muted">
+Kilometraje registrado:
+${Number(v.km||0).toLocaleString('es-CL')} km
+· Total histórico: ${money(total)}
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Historial (${vs.length})</h2>
+
+${vs.length
+? vs.map(x=>`
+
+<div class="visit">
+
+<b>
+${fmt(x.date)}
+· ${Number(x.km||0).toLocaleString('es-CL')} km
+</b>
+
+<div>${esc(x.work)}</div>
+
+${x.parts
+? `<div class="muted">Repuestos: ${esc(x.parts)}</div>`
+:''}
+
+${x.notes
+? `<div class="muted">Obs.: ${esc(x.notes)}</div>`
+:''}
+
+<div>
+<b>${money(x.amount)}</b>
+
+${x.nextKm
+? ` · Próx.: ${Number(x.nextKm).toLocaleString('es-CL')} km`
+:''}
+
+${x.nextDate
+? ` · ${fmt(x.nextDate)}`
+:''}
+
+</div>
+
+</div>
+
+`).join('')
+
+: `<div class="empty">
+Este vehículo todavía no tiene atenciones registradas.
+</div>`
+}
+
+</div>
+`;
+
+}
+
+
+function esc(s){
+
+return String(s||'').replace(
+/[&<>"']/g,
+c=>({
+'&':'&amp;',
+'<':'&lt;',
+'>':'&gt;',
+'"':'&quot;',
+"'":'&#039;'
+}[c])
+);
+
+}
+
+
+function fmt(s){
+
+if(!s)return '';
+
+let [y,m,d]=s.split('-');
+
+return `${d}/${m}/${y}`;
+
+}
+
+
+function updateStats(){
+
+let d=db();
+
+sVehicles.textContent=
+Object.keys(d.vehicles).length;
+
+sVisits.textContent=
+d.visits.length;
+
+sSales.textContent=
+money(
+d.visits.reduce(
+(s,x)=>s+Number(x.amount||0),0
+)
+);
+
+}
+
+
+function exportData(){
+
+let blob=new Blob(
+[JSON.stringify(db(),null,2)],
+{type:'application/json'}
+);
+
+let a=document.createElement('a');
+
+a.href=URL.createObjectURL(blob);
+
+a.download='respaldo-geolub.json';
+
+a.click();
+
+URL.revokeObjectURL(a.href);
+
+}
+
+
+function importData(e){
+
+let f=e.target.files[0];
+
+if(!f)return;
+
+let r=new FileReader();
+
+r.onload=()=>{
+
+try{
+
+let x=JSON.parse(r.result);
+
+if(!x.vehicles||!x.visits)
+throw 0;
+
+put(x);
+
+alert('Respaldo restaurado.');
+
+}catch{
+
+alert('El archivo de respaldo no es válido.');
+
+}
+
+};
+
+r.readAsText(f);
+
+}
+
+
+updateStats();
+
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('./sw.js');
+}
+
+</script>
+
+</body>
+</html>
