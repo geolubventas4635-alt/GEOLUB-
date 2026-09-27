@@ -1559,35 +1559,67 @@ function mostrarAgendaDia(){
 
 function crearCita(fecha,hora,puesto){
 
-  const cliente = prompt(
-    'Nombre del cliente:'
-  );
+  // Revisar si venimos desde una cotización aprobada
+  let cotizacion = null;
 
-  if(!cliente) return;
+  try{
+    cotizacion = JSON.parse(
+      localStorage.getItem('geolub_cotizacion_para_agenda')
+    );
+  }catch(e){
+    cotizacion = null;
+  }
 
-  const telefono = prompt(
-    'Número de teléfono:'
-  ) || '';
+  let cliente;
+  let telefono;
+  let patente;
+  let vehiculo;
+  let servicio;
+  let precio;
 
-  const patente = norm(
-    prompt('Patente del vehículo:') || ''
-  );
+  // Si existe una cotización, usamos sus datos automáticamente
+  if(cotizacion){
 
-  const vehiculo = prompt(
-    'Vehículo / modelo:'
-  ) || '';
+    cliente = cotizacion.cliente || '';
+    telefono = cotizacion.telefono || '';
+    patente = norm(cotizacion.patente || '');
+    vehiculo = cotizacion.vehiculo || '';
+    servicio = cotizacion.servicio || '';
+    precio = Number(cotizacion.monto || 0);
 
-  const servicio = prompt(
-    '¿Qué servicio se realizará?'
-  ) || '';
+  }else{
 
-  const precioTexto = prompt(
-    'Valor estimado del trabajo (opcional):'
-  ) || '0';
+    // Agenda normal: sigue funcionando manualmente
+    cliente = prompt(
+      'Nombre del cliente:'
+    );
 
-  const precio = Number(
-    precioTexto.replace(/[^\d]/g,'')
-  ) || 0;
+    if(!cliente) return;
+
+    telefono = prompt(
+      'Número de teléfono:'
+    ) || '';
+
+    patente = norm(
+      prompt('Patente del vehículo:') || ''
+    );
+
+    vehiculo = prompt(
+      'Vehículo / modelo:'
+    ) || '';
+
+    servicio = prompt(
+      '¿Qué servicio se realizará?'
+    ) || '';
+
+    const precioTexto = prompt(
+      'Valor estimado del trabajo (opcional):'
+    ) || '0';
+
+    precio = Number(
+      precioTexto.replace(/[^\d]/g,'')
+    ) || 0;
+  }
 
   const agenda = obtenerAgenda();
 
@@ -1620,10 +1652,17 @@ function crearCita(fecha,hora,puesto){
 
   guardarAgenda(agenda);
 
+  // Si vino desde Cotizaciones, limpiamos los datos temporales
+  if(cotizacion){
+    localStorage.removeItem('geolub_cotizacion_para_agenda');
+  }
+
   alert(
     '✅ Agenda guardada\n\n' +
     fecha + ' - ' + hora +
-    '\nPuesto ' + puesto
+    '\nPuesto ' + puesto +
+    '\n\nCliente: ' + cliente +
+    '\nVehículo: ' + vehiculo
   );
 
   mostrarAgendaDia();
