@@ -581,7 +581,7 @@ async function consultarPatente(){
   try{
 
     const url=
-      'https://api.restart.cl/vehiculos-revisiones/' +
+      'https://api.restart.cl/v1/vehiculos-revisiones/' +
       encodeURIComponent(patente);
 
     const response=await fetch(url,{
