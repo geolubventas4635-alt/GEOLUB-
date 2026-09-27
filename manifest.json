@@ -1,1 +1,17 @@
-{"name":"GEOLUB Gestión Taller","short_name":"GEOLUB","start_url":"./index.html","display":"standalone","background_color":"#f4f6fa","theme_color":"#2C2B7E","icons":[{"src":"geolub-logo.png","sizes":"1536x1024","type":"image/png","purpose":"any"}]}
+{
+  "name": "GEOLUB Gestión Taller",
+  "short_name": "GEOLUB",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2C2B7E",
+  "icons": [
+    {
+      "src": "./geolub-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
