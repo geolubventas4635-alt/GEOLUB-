@@ -621,13 +621,16 @@ async function consultarPatente(){
       La API puede devolver varias revisiones.
       Buscamos un registro que contenga marca/modelo.
     */
-    let vehiculo=
-      registros.find(x=>
-        x && (
-          x.marca || x.Marca || x.MARCA ||
-          x.modelo || x.Modelo || x.MODELO
-        )
-      ) || registros[0];
+    let registro=
+  registros.find(x=>
+    x && x.attributes &&
+    (x.attributes.marca || x.attributes.modelo)
+  ) || registros[0];
+
+let vehiculo=
+  registro && registro.attributes
+    ? registro.attributes
+    : registro;
 
     const getValue=(obj,...keys)=>{
 
