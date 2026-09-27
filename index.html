@@ -1827,7 +1827,16 @@ function mostrarCotizaciones(){
           </select>
 
         </div>
-
+${c.estado === 'aprobada' ? `
+  <div style="margin-top:10px">
+    <button
+      type="button"
+      class="btn green"
+      onclick="agendarDesdeCotizacion(${c.id})">
+      📅 Agendar cliente
+    </button>
+  </div>
+` : ''}
       </div>
     `;
 
@@ -1852,7 +1861,39 @@ function cambiarEstadoCotizacion(id,nuevoEstado){
 
 /* Mostrar cotizaciones al abrir */
 mostrarCotizaciones();
+/* CONECTAR COTIZACION CON AGENDA */
+function agendarDesdeCotizacion(id){
 
+  const lista = obtenerCotizaciones();
+  const c = lista.find(x => x.id === id);
+
+  if(!c){
+    alert('No se encontró la cotización.');
+    return;
+  }
+
+  // Guardamos temporalmente los datos
+  localStorage.setItem(
+    'geolub_cotizacion_para_agenda',
+    JSON.stringify(c)
+  );
+
+  // Abrir pestaña Agenda
+  const botonAgenda =
+    document.querySelector('[data-tab="agenda"]');
+
+  if(botonAgenda){
+    botonAgenda.click();
+  }
+
+  // Aviso
+  alert(
+    '📅 Cotización preparada para agendar.\n\n' +
+    'Cliente: ' + (c.cliente || '') + '\n' +
+    'Patente: ' + (c.patente || '') + '\n' +
+    'Vehículo: ' + (c.vehiculo || '')
+  );
+}
 </script>
 
 </body>
