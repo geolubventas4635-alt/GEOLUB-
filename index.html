@@ -279,8 +279,31 @@ footer{
           </button>
         </div>
       </div>
-
       <div id="plateStatus" class="status"></div>
+<div style="margin-top:16px;border-top:1px solid #dedffa;padding-top:14px">
+
+  <h3>📋 Importar desde Patentes Chile</h3>
+
+  <div class="muted">
+    En Patentes Chile pulsa “Copiar”, pega aquí la información
+    y GEOLUB completará automáticamente la ficha.
+  </div>
+
+  <textarea id="patentesChileText"
+    placeholder="Pega aquí los datos copiados desde Patentes Chile..."
+    style="margin-top:10px;min-height:120px"></textarea>
+
+  <button type="button"
+    class="btn green"
+    style="width:100%;margin-top:8px"
+    onclick="importarPatentesChile()">
+    ⚡ Autocompletar ficha
+  </button>
+
+  <div id="importStatus" class="status"></div>
+
+</div>
+
     </div>
 
     <div class="grid">
@@ -745,7 +768,161 @@ let vehiculo=
     boton.disabled=false;
   }
 }
+/* IMPORTAR DATOS DESDE PATENTES CHILE */
+function importarPatentesChile(){
 
+  const texto=document
+    .getElementById('patentesChileText')
+    .value
+    .trim();
+
+  const estado=document.getElementById('importStatus');
+
+  if(!texto){
+    estado.textContent='⚠️ Primero pega los datos copiados desde Patentes Chile.';
+    return;
+  }
+
+  const buscar=(etiquetas)=>{
+
+    const lineas=texto.split(/\r?\n/);
+
+    for(const linea of lineas){
+
+      const limpia=linea.trim();
+
+      for(const etiqueta of etiquetas){
+
+        const regex=new RegExp(
+          '^'+etiqueta.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+
+          '\\s*:\\s*(.+)$',
+          'i'
+        );
+
+        const resultado=limpia.match(regex);
+
+        if(resultado && resultado[1]){
+          return resultado[1].trim();
+        }
+      }
+    }
+
+    return '';
+  };
+
+
+  let patente=buscar([
+    'Patente'
+  ]);
+
+  const year=buscar([
+    'Año',
+    'Ano'
+  ]);
+
+  const marca=buscar([
+    'Marca'
+  ]);
+
+  const modelo=buscar([
+    'Modelo'
+  ]);
+
+  const color=buscar([
+    'Color'
+  ]);
+
+  const motor=buscar([
+    'N° Motor',
+    'Nº Motor',
+    'N Motor'
+  ]);
+
+  const vin=buscar([
+    'N° Chasis/VIN',
+    'Nº Chasis/VIN',
+    'Chasis/VIN',
+    'VIN',
+    'Chasis'
+  ]);
+
+  const combustible=buscar([
+    'Combustible'
+  ]);
+
+  const version=buscar([
+    'Versión',
+    'Version'
+  ]);
+
+  const cilindrada=buscar([
+    'Cilindrada'
+  ]);
+
+
+  /*
+    Patentes Chile puede mostrar un dígito adicional
+    después de un guion. Para GEOLUB conservamos
+    la patente principal.
+  */
+  if(patente){
+    patente=patente.split('-')[0];
+    patente=norm(patente);
+  }
+
+  if(patente)
+    document.getElementById('vPlate').value=patente;
+
+  if(vin)
+    document.getElementById('vVin').value=norm(vin);
+
+  if(marca)
+    document.getElementById('vBrand').value=marca;
+
+  if(modelo)
+    document.getElementById('vModel').value=modelo;
+
+  if(year)
+    document.getElementById('vYear').value=year;
+
+  if(version)
+    document.getElementById('vVersion').value=version;
+
+  if(cilindrada)
+    document.getElementById('vEngine').value=cilindrada;
+
+  if(motor)
+    document.getElementById('vEngineNumber').value=motor;
+
+  if(combustible)
+    document.getElementById('vFuel').value=combustible;
+
+  if(color)
+    document.getElementById('vColor').value=color;
+
+
+  const encontrados=[
+    patente,
+    marca,
+    modelo,
+    year,
+    vin,
+    motor,
+    color
+  ].filter(Boolean).length;
+
+  if(encontrados){
+
+    estado.textContent=
+      '✅ Datos importados correctamente. Revisa la ficha y guarda el vehículo.';
+
+  }else{
+
+    estado.textContent=
+      '⚠️ No pude reconocer los datos pegados.';
+
+  }
+}
 
 /* GUARDAR VEHÍCULO */
 function saveVehicle(){
