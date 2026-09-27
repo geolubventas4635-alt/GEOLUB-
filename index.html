@@ -204,6 +204,7 @@ footer{
   <button class="tab" data-tab="vehiculo">🚗 Nuevo vehículo</button>
   <button class="tab" data-tab="atencion">🔧 Nueva atención</button>
   <button class="tab" data-tab="agenda">📅 Agenda</button>
+  <button class="tab" data-tab="cotizaciones">💰 Cotizaciones</button>
   <button class="tab" data-tab="panel">📊 Panel</button>
 </nav>
 
@@ -479,6 +480,93 @@ footer{
 
   <div id="agendaHorarios" style="margin-top:15px"></div>
 </div>
+
+</section>
+
+  <!-- COTIZACIONES -->
+<section id="cotizaciones" class="panel">
+
+  <div class="card">
+    <h2>💰 Cotizaciones pendientes</h2>
+
+    <p class="muted">
+      Registra cotizaciones de clientes y realiza seguimiento hasta cerrar la venta.
+    </p>
+
+    <div class="grid">
+
+      <div>
+        <label>Nombre del cliente</label>
+        <input id="cCliente" placeholder="Nombre y apellido">
+      </div>
+
+      <div>
+        <label>Teléfono</label>
+        <input id="cTelefono" type="tel" placeholder="+56 9...">
+      </div>
+
+      <div>
+        <label>Patente</label>
+        <input id="cPatente"
+               placeholder="Ej: RZBS34"
+               autocapitalize="characters">
+      </div>
+
+      <div>
+        <label>Vehículo</label>
+        <input id="cVehiculo" placeholder="Ej: Kia Soluto 2022">
+      </div>
+
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Repuestos / servicios a cotizar</label>
+      <textarea id="cTrabajo"
+        placeholder="Ej: Pastillas delanteras, discos de freno, mano de obra..."></textarea>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+
+      <div>
+        <label>Monto cotización $</label>
+        <input id="cMonto"
+               type="number"
+               min="0"
+               placeholder="Ej: 150000">
+      </div>
+
+      <div>
+        <label>Estado</label>
+        <select id="cEstado">
+          <option value="pendiente">🟠 Pendiente</option>
+          <option value="enviada">🔵 Enviada al cliente</option>
+          <option value="aprobada">🟢 Aprobada</option>
+          <option value="rechazada">🔴 No concretada</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Observaciones / seguimiento</label>
+      <textarea id="cNotas"
+        placeholder="Ej: Cliente espera confirmación de repuestos. Llamar mañana."></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="button"
+              class="btn green"
+              onclick="guardarCotizacion()">
+        💾 Guardar cotización
+      </button>
+    </div>
+
+  </div>
+
+  <div class="card" style="margin-top:15px">
+    <h2>📋 Seguimiento de cotizaciones</h2>
+    <div id="listaCotizaciones"></div>
+  </div>
 
 </section>
 <!-- PANEL -->
@@ -1562,6 +1650,208 @@ function crearCita(fecha,hora,puesto){
   }
 
 })();
+
+  /* =========================
+   COTIZACIONES GEOLUB
+========================= */
+
+const COTIZACIONES_KEY = 'geolub_cotizaciones_v1';
+
+function obtenerCotizaciones(){
+  try{
+    return JSON.parse(localStorage.getItem(COTIZACIONES_KEY)) || [];
+  }catch{
+    return [];
+  }
+}
+
+function guardarCotizaciones(lista){
+  localStorage.setItem(
+    COTIZACIONES_KEY,
+    JSON.stringify(lista)
+  );
+}
+
+function guardarCotizacion(){
+
+  const cliente = document.getElementById('cCliente').value.trim();
+  const telefono = document.getElementById('cTelefono').value.trim();
+  const patente = norm(document.getElementById('cPatente').value);
+  const vehiculo = document.getElementById('cVehiculo').value.trim();
+  const trabajo = document.getElementById('cTrabajo').value.trim();
+  const monto = Number(document.getElementById('cMonto').value) || 0;
+  const estado = document.getElementById('cEstado').value;
+  const notas = document.getElementById('cNotas').value.trim();
+
+  if(!cliente){
+    alert('Ingresa el nombre del cliente.');
+    return;
+  }
+
+  if(!patente){
+    alert('Ingresa la patente del vehículo.');
+    return;
+  }
+
+  if(!trabajo){
+    alert('Indica qué repuesto o servicio debes cotizar.');
+    return;
+  }
+
+  const lista = obtenerCotizaciones();
+
+  lista.unshift({
+    id: Date.now(),
+    cliente,
+    telefono,
+    patente,
+    vehiculo,
+    trabajo,
+    monto,
+    estado,
+    notas,
+    fecha: new Date().toISOString()
+  });
+
+  guardarCotizaciones(lista);
+
+  document.getElementById('cCliente').value='';
+  document.getElementById('cTelefono').value='';
+  document.getElementById('cPatente').value='';
+  document.getElementById('cVehiculo').value='';
+  document.getElementById('cTrabajo').value='';
+  document.getElementById('cMonto').value='';
+  document.getElementById('cEstado').value='pendiente';
+  document.getElementById('cNotas').value='';
+
+  mostrarCotizaciones();
+
+  alert('✅ Cotización guardada correctamente.');
+}
+
+function mostrarCotizaciones(){
+
+  const contenedor =
+    document.getElementById('listaCotizaciones');
+
+  if(!contenedor) return;
+
+  const lista = obtenerCotizaciones();
+
+  if(!lista.length){
+    contenedor.innerHTML =
+      '<p class="muted">No hay cotizaciones registradas.</p>';
+    return;
+  }
+
+  contenedor.innerHTML = lista.map(c => {
+
+    let indicador = '🟠';
+    let nombreEstado = 'Pendiente';
+
+    if(c.estado === 'enviada'){
+      indicador='🔵';
+      nombreEstado='Enviada al cliente';
+    }
+
+    if(c.estado === 'aprobada'){
+      indicador='🟢';
+      nombreEstado='Aprobada';
+    }
+
+    if(c.estado === 'rechazada'){
+      indicador='🔴';
+      nombreEstado='No concretada';
+    }
+
+    return `
+      <div class="result" style="margin-top:10px">
+
+        <b>${indicador} ${esc(c.cliente)}</b>
+
+        <div style="margin-top:6px">
+          <b>Patente:</b> ${esc(c.patente)}
+        </div>
+
+        <div>
+          <b>Vehículo:</b> ${esc(c.vehiculo || '-')}
+        </div>
+
+        <div>
+          <b>Teléfono:</b> ${esc(c.telefono || '-')}
+        </div>
+
+        <div>
+          <b>Cotizar:</b> ${esc(c.trabajo)}
+        </div>
+
+        <div>
+          <b>Monto:</b> ${money(c.monto)}
+        </div>
+
+        <div>
+          <b>Estado:</b> ${nombreEstado}
+        </div>
+
+        ${c.notas ? `
+          <div>
+            <b>Seguimiento:</b> ${esc(c.notas)}
+          </div>
+        ` : ''}
+
+        <div style="margin-top:10px">
+
+          <select
+            onchange="cambiarEstadoCotizacion(${c.id},this.value)">
+
+            <option value="pendiente"
+              ${c.estado==='pendiente'?'selected':''}>
+              🟠 Pendiente
+            </option>
+
+            <option value="enviada"
+              ${c.estado==='enviada'?'selected':''}>
+              🔵 Enviada
+            </option>
+
+            <option value="aprobada"
+              ${c.estado==='aprobada'?'selected':''}>
+              🟢 Aprobada
+            </option>
+
+            <option value="rechazada"
+              ${c.estado==='rechazada'?'selected':''}>
+              🔴 No concretada
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join('');
+}
+
+function cambiarEstadoCotizacion(id,nuevoEstado){
+
+  const lista = obtenerCotizaciones();
+
+  const cotizacion =
+    lista.find(c => c.id === id);
+
+  if(!cotizacion) return;
+
+  cotizacion.estado = nuevoEstado;
+  cotizacion.actualizado = new Date().toISOString();
+
+  guardarCotizaciones(lista);
+  mostrarCotizaciones();
+}
+
+/* Mostrar cotizaciones al abrir */
+mostrarCotizaciones();
 
 </script>
 
