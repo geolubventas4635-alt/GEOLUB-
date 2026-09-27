@@ -203,6 +203,7 @@ footer{
   <button class="tab active" data-tab="buscar">🔎 Buscar</button>
   <button class="tab" data-tab="vehiculo">🚗 Nuevo vehículo</button>
   <button class="tab" data-tab="atencion">🔧 Nueva atención</button>
+  <button class="tab" data-tab="agenda">📅 Agenda</button>
   <button class="tab" data-tab="panel">📊 Panel</button>
 </nav>
 
@@ -454,7 +455,32 @@ footer{
   </div>
 </section>
 
+<!-- AGENDA -->
+<section id="agenda" class="panel">
+  <div class="card">
+  <h2>📅 Agenda GEOLUB</h2>
+  <p class="muted">Selecciona una fecha para revisar horarios disponibles y agendar vehículos.</p>
 
+  <div class="grid">
+    <div>
+      <label>Fecha</label>
+      <input type="date" id="agendaDate" onchange="mostrarAgendaDia()">
+    </div>
+
+    <div>
+      <label>Ver</label>
+      <button type="button" class="btn" onclick="mostrarAgendaDia()">
+        📅 Ver agenda del día
+      </button>
+    </div>
+  </div>
+
+  <div id="agendaResumen" style="margin-top:15px"></div>
+
+  <div id="agendaHorarios" style="margin-top:15px"></div>
+</div>
+
+</section>
 <!-- PANEL -->
 <section id="panel" class="panel">
 
@@ -1282,6 +1308,260 @@ if('serviceWorker' in navigator){
     .then(reg=>reg.update())
     .catch(err=>console.log('SW:',err));
 }
+
+  /* =========================
+   AGENDA GEOLUB
+   ========================= */
+
+const AGENDA_KEY = 'geolub_agenda_v1';
+
+function obtenerAgenda(){
+  try{
+    return JSON.parse(localStorage.getItem(AGENDA_KEY)) || [];
+  }catch{
+    return [];
+  }
+}
+
+function guardarAgenda(datos){
+  localStorage.setItem(AGENDA_KEY, JSON.stringify(datos));
+}
+
+function horariosGeolub(fecha){
+
+  const partes = fecha.split('-');
+  const d = new Date(
+    Number(partes[0]),
+    Number(partes[1]) - 1,
+    Number(partes[2])
+  );
+
+  const dia = d.getDay();
+
+  // Domingo
+  if(dia === 0) return [];
+
+  let fin;
+
+  // Sábado hasta 13:30
+  if(dia === 6){
+    fin = 13 * 60 + 30;
+  }else{
+    // Lunes a viernes hasta 18:30
+    fin = 18 * 60 + 30;
+  }
+
+  const inicio = 9 * 60;
+  const horarios = [];
+
+  // Intervalos de 30 minutos
+  for(let minutos=inicio; minutos<=fin; minutos+=30){
+
+    const hora = String(
+      Math.floor(minutos/60)
+    ).padStart(2,'0');
+
+    const min = String(
+      minutos%60
+    ).padStart(2,'0');
+
+    horarios.push(hora + ':' + min);
+  }
+
+  return horarios;
+}
+
+
+function mostrarAgendaDia(){
+
+  const fecha =
+    document.getElementById('agendaDate').value;
+
+  const resumen =
+    document.getElementById('agendaResumen');
+
+  const contenedor =
+    document.getElementById('agendaHorarios');
+
+  if(!fecha){
+    resumen.innerHTML =
+      '<b>⚠️ Selecciona una fecha.</b>';
+    contenedor.innerHTML = '';
+    return;
+  }
+
+  const horarios = horariosGeolub(fecha);
+
+  if(!horarios.length){
+    resumen.innerHTML =
+      '<b>🔴 Domingo: taller cerrado.</b>';
+    contenedor.innerHTML = '';
+    return;
+  }
+
+  const agenda = obtenerAgenda();
+
+  const citasDia =
+    agenda.filter(x => x.fecha === fecha);
+
+  const ocupados = citasDia.length;
+  const capacidad = horarios.length * 4;
+  const disponibles = capacidad - ocupados;
+
+  resumen.innerHTML =
+    '<div class="card">' +
+      '<b>📅 Agenda del día</b><br>' +
+      '🚗 Agendados: ' + ocupados + '<br>' +
+      '✅ Espacios disponibles: ' + disponibles +
+    '</div>';
+
+  let html = '';
+
+  horarios.forEach(hora => {
+
+    html +=
+      '<div class="card" style="margin-top:10px">' +
+      '<h3>🕐 ' + hora + '</h3>';
+
+    for(let puesto=1; puesto<=4; puesto++){
+
+      const cita = agenda.find(x =>
+        x.fecha === fecha &&
+        x.hora === hora &&
+        Number(x.puesto) === puesto
+      );
+
+      if(cita){
+
+        html +=
+          '<div style="padding:10px;margin:6px 0;' +
+          'border:1px solid #ddd;border-radius:10px;' +
+          'background:#fff3cd">' +
+
+          '<b>Puesto ' + puesto + ' — OCUPADO</b><br>' +
+          '🚗 ' + (cita.patente || '') + '<br>' +
+          (cita.vehiculo || '') + '<br>' +
+          '👤 ' + (cita.cliente || '') + '<br>' +
+          '🔧 ' + (cita.servicio || '') +
+
+          '</div>';
+
+      }else{
+
+        html +=
+          '<button type="button" class="btn green" ' +
+          'style="width:100%;margin:5px 0" ' +
+          'onclick="crearCita(\'' +
+          fecha + '\',\'' +
+          hora + '\',' +
+          puesto + ')">' +
+          '✅ ' + hora +
+          ' — Puesto ' + puesto +
+          ' disponible' +
+          '</button>';
+      }
+    }
+
+    html += '</div>';
+  });
+
+  contenedor.innerHTML = html;
+}
+
+
+function crearCita(fecha,hora,puesto){
+
+  const cliente = prompt(
+    'Nombre del cliente:'
+  );
+
+  if(!cliente) return;
+
+  const telefono = prompt(
+    'Número de teléfono:'
+  ) || '';
+
+  const patente = norm(
+    prompt('Patente del vehículo:') || ''
+  );
+
+  const vehiculo = prompt(
+    'Vehículo / modelo:'
+  ) || '';
+
+  const servicio = prompt(
+    '¿Qué servicio se realizará?'
+  ) || '';
+
+  const precioTexto = prompt(
+    'Valor estimado del trabajo (opcional):'
+  ) || '0';
+
+  const precio = Number(
+    precioTexto.replace(/[^\d]/g,'')
+  ) || 0;
+
+  const agenda = obtenerAgenda();
+
+  const ocupado = agenda.some(x =>
+    x.fecha === fecha &&
+    x.hora === hora &&
+    Number(x.puesto) === Number(puesto)
+  );
+
+  if(ocupado){
+    alert('Este puesto ya está ocupado.');
+    mostrarAgendaDia();
+    return;
+  }
+
+  agenda.push({
+    id: Date.now(),
+    fecha,
+    hora,
+    puesto,
+    cliente,
+    telefono,
+    patente,
+    vehiculo,
+    servicio,
+    precio,
+    estado:'Agendado',
+    creado:new Date().toISOString()
+  });
+
+  guardarAgenda(agenda);
+
+  alert(
+    '✅ Agenda guardada\n\n' +
+    fecha + ' - ' + hora +
+    '\nPuesto ' + puesto
+  );
+
+  mostrarAgendaDia();
+}
+
+
+/* Colocar fecha de hoy automáticamente */
+(function iniciarAgenda(){
+
+  const campo =
+    document.getElementById('agendaDate');
+
+  if(campo && !campo.value){
+
+    const hoy = new Date();
+
+    const local = new Date(
+      hoy.getTime() -
+      hoy.getTimezoneOffset()*60000
+    );
+
+    campo.value =
+      local.toISOString().split('T')[0];
+  }
+
+})();
 
 </script>
 
