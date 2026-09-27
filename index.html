@@ -1521,20 +1521,36 @@ function mostrarAgendaDia(){
 
       if(cita){
 
-        html +=
-          '<div style="padding:10px;margin:6px 0;' +
-          'border:1px solid #ddd;border-radius:10px;' +
-          'background:#fff3cd">' +
+  html +=
+    '<div style="padding:12px;margin:6px 0;' +
+    'border:1px solid #ddd;border-radius:10px;' +
+    'background:#fff3cd">' +
 
-          '<b>Puesto ' + puesto + ' — OCUPADO</b><br>' +
-          '🚗 ' + (cita.patente || '') + '<br>' +
-          (cita.vehiculo || '') + '<br>' +
-          '👤 ' + (cita.cliente || '') + '<br>' +
-          '🔧 ' + (cita.servicio || '') +
+    '<b>Puesto ' + puesto + ' — OCUPADO</b><br>' +
+    '🚗 <b>Patente:</b> ' + (cita.patente || '') + '<br>' +
+    '🚘 <b>Vehículo:</b> ' + (cita.vehiculo || '') + '<br>' +
+    '👤 <b>Cliente:</b> ' + (cita.cliente || '') + '<br>' +
+    '📞 <b>Teléfono:</b> ' + (cita.telefono || '') + '<br>' +
+    '🔧 <b>Trabajo:</b> ' + (cita.servicio || 'Sin especificar') + '<br>' +
+    '💰 <b>Valor:</b> $' + Number(cita.precio || 0).toLocaleString('es-CL') +
 
-          '</div>';
+    '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
 
-      }else{
+      '<button type="button" class="btn" ' +
+      'onclick="editarCita(' + cita.id + ')">' +
+      '✏️ Editar / Reagendar' +
+      '</button>' +
+
+      '<button type="button" class="btn red" ' +
+      'onclick="cancelarCita(' + cita.id + ')">' +
+      '🗑️ Cancelar cita' +
+      '</button>' +
+
+    '</div>' +
+
+    '</div>';
+
+}else{
 
         html +=
           '<button type="button" class="btn green" ' +
@@ -1667,8 +1683,157 @@ function crearCita(fecha,hora,puesto){
 
   mostrarAgendaDia();
 }
+  
+  /* EDITAR / REAGENDAR UNA CITA */
+function editarCita(id){
+
+  const agenda = obtenerAgenda();
+  const cita = agenda.find(x => x.id === id);
+
+  if(!cita){
+    alert('No se encontró la cita.');
+    return;
+  }
+
+  const nuevaFecha = prompt(
+    'Nueva fecha (AAAA-MM-DD):',
+    cita.fecha || ''
+  );
+
+  if(!nuevaFecha) return;
+
+  const nuevaHora = prompt(
+    'Nueva hora (Ej: 09:00, 09:30, 10:00):',
+    cita.hora || ''
+  );
+
+  if(!nuevaHora) return;
+
+  const nuevoPuestoTexto = prompt(
+    'Puesto de trabajo (1, 2, 3 o 4):',
+    cita.puesto || 1
+  );
+
+  if(!nuevoPuestoTexto) return;
+
+  const nuevoPuesto = Number(nuevoPuestoTexto);
+
+  if(![1,2,3,4].includes(nuevoPuesto)){
+    alert('El puesto debe ser 1, 2, 3 o 4.');
+    return;
+  }
+
+  const ocupado = agenda.some(x =>
+    x.id !== id &&
+    x.fecha === nuevaFecha &&
+    x.hora === nuevaHora &&
+    Number(x.puesto) === nuevoPuesto
+  );
+
+  if(ocupado){
+    alert('Ese horario y puesto ya están ocupados.');
+    return;
+  }
+
+  const nuevoCliente = prompt(
+    'Nombre del cliente:',
+    cita.cliente || ''
+  );
+
+  if(nuevoCliente === null) return;
+
+  const nuevoTelefono = prompt(
+    'Teléfono:',
+    cita.telefono || ''
+  );
+
+  if(nuevoTelefono === null) return;
+
+  const nuevaPatente = prompt(
+    'Patente:',
+    cita.patente || ''
+  );
+
+  if(nuevaPatente === null) return;
+
+  const nuevoVehiculo = prompt(
+    'Vehículo / modelo:',
+    cita.vehiculo || ''
+  );
+
+  if(nuevoVehiculo === null) return;
+
+  const nuevoServicio = prompt(
+    'Trabajo a realizar:',
+    cita.servicio || ''
+  );
+
+  if(nuevoServicio === null) return;
+
+  const nuevoPrecioTexto = prompt(
+    'Valor estimado del trabajo:',
+    cita.precio || 0
+  );
+
+  if(nuevoPrecioTexto === null) return;
+
+  cita.fecha = nuevaFecha;
+  cita.hora = nuevaHora;
+  cita.puesto = nuevoPuesto;
+  cita.cliente = nuevoCliente.trim();
+  cita.telefono = nuevoTelefono.trim();
+  cita.patente = norm(nuevaPatente);
+  cita.vehiculo = nuevoVehiculo.trim();
+  cita.servicio = nuevoServicio.trim();
+  cita.precio = Number(
+    String(nuevoPrecioTexto).replace(/[^\d]/g,'')
+  ) || 0;
+
+  guardarAgenda(agenda);
+
+  const campoFecha = document.getElementById('agendaDate');
+
+  if(campoFecha){
+    campoFecha.value = nuevaFecha;
+  }
+
+  mostrarAgendaDia();
+
+  alert(
+    '✅ Cita actualizada correctamente.\n\n' +
+    nuevaFecha + ' - ' + nuevaHora +
+    '\nPuesto ' + nuevoPuesto
+  );
+}
 
 
+/* CANCELAR UNA CITA */
+function cancelarCita(id){
+
+  const agenda = obtenerAgenda();
+  const cita = agenda.find(x => x.id === id);
+
+  if(!cita){
+    alert('No se encontró la cita.');
+    return;
+  }
+
+  const confirmar = confirm(
+    '¿Cancelar esta cita?\n\n' +
+    (cita.cliente || '') + '\n' +
+    (cita.patente || '') + '\n' +
+    (cita.fecha || '') + ' - ' + (cita.hora || '')
+  );
+
+  if(!confirmar) return;
+
+  const nuevaAgenda = agenda.filter(x => x.id !== id);
+
+  guardarAgenda(nuevaAgenda);
+  mostrarAgendaDia();
+
+  alert('🗑️ Cita cancelada. El puesto quedó disponible.');
+}
 /* Colocar fecha de hoy automáticamente */
 (function iniciarAgenda(){
 
