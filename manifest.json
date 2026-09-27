@@ -8,7 +8,7 @@
   "theme_color": "#2C2B7E",
   "icons": [
     {
-      "src": : ./geolub-icon-512.png
+      "src": "./geolub-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
