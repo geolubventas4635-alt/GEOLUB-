@@ -473,6 +473,23 @@ body{background:#f1f4f9}
 @media(max-width:560px){.dashboard-hero{min-height:220px;background-position:42% center} .hero-overlay{min-height:220px} .hero-copy{left:18px;right:18px;top:105px;width:auto} .hero-copy h1{font-size:31px} .hero-copy h2{font-size:18px} .user-chip{right:12px;top:12px} #buscar>.card:first-child .grid{grid-template-columns:1fr} .quick-grid{grid-template-columns:1fr}}
 
 </style>
+
+<style id="geolub-final-ui">
+:root{--side:330px}
+body{background:#f3f6fb}
+.sidebar{width:var(--side);padding:18px;background:linear-gradient(180deg,#031d49 0%,#062a63 60%,#041b42 100%)}
+.brand{height:145px}.brand img{max-width:280px}
+.wrap{margin-left:var(--side);padding:0 18px 28px}
+.dashboard-hero{min-height:320px;margin:0 -18px 18px;background-position:center;background-size:cover}
+.hero-overlay{min-height:320px;position:relative;display:flex;align-items:center;justify-content:flex-end;padding:38px 48px;background:linear-gradient(90deg,transparent 25%,rgba(3,20,53,.22) 48%,rgba(3,20,53,.88) 100%)}
+.hero-copy{width:58%;color:#fff}.hero-copy h1{font-size:54px;line-height:1;margin:0 0 8px}.hero-copy h2{font-size:28px;margin:0 0 26px}.hero-points{display:flex;gap:20px;font-size:14px}.hero-points span{flex:1;border-left:1px solid #ffffff55;padding-left:14px}
+.user-chip{position:absolute;right:22px;top:16px;border:1px solid #ffffff44;background:#071a3ab8;color:white;border-radius:13px;padding:9px 15px;display:grid;grid-template-columns:auto 1fr;column-gap:8px}.user-chip small{grid-column:2}
+#buscar>.card:first-child{padding:20px;border-radius:16px}#buscar>.card:first-child h2{font-size:25px;color:#08285c;margin:0 0 12px}#buscar>.card:first-child .grid{grid-template-columns:1fr 1fr}#buscar>.card:first-child .actions{margin-top:12px}#buscar>.card:first-child .btn{min-width:220px;background:#0746c8}
+.quick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0}.quick{min-height:145px;border-radius:16px;text-align:left;padding:22px;border:1px solid #dce5f2;box-shadow:0 8px 24px #0c28500d}.quick b{font-size:18px}.quick span{font-size:14px;line-height:1.4;margin-top:14px}.q-blue{background:#edf6ff}.q-red{background:#fff0f1}.q-green{background:#edfff5}.q-orange{background:#fff8e9}.q-purple{background:#f5f0ff}
+.dash-columns{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.dash-columns>.card{border-radius:16px}.section-title{font-size:21px;color:#092b64}
+.side-info{font-size:15px}.side-info:before{content:'GEOLUB\A Av. Macul 4635\A Macul, Santiago\A\A Horario de atención\A Lunes a Viernes 9:00 - 18:30\A Sábado 9:00 - 13:30';white-space:pre-line;font-weight:600}.side-info>*{display:none}
+@media(max-width:900px){:root{--side:0px}.sidebar{position:relative;width:auto;inset:auto}.wrap{margin-left:0}.sidebar .tabs{display:grid;grid-template-columns:repeat(3,1fr)}.hero-copy{width:72%}.quick-grid{grid-template-columns:repeat(2,1fr)}.dash-columns{grid-template-columns:1fr}}
+</style>
 </head>
 
 <body>
